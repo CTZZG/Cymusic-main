@@ -5,8 +5,7 @@
 			"appInfo": "App Information",
 			"audioSettings": "Audio Settings",
 			"customSource": "Custom Music Source",
-			"qualitySelection": "Quality Selection",
-			"pluginManagement": "Plugin Management"
+			"qualitySelection": "Quality Selection"
 		},
 		"items": {
 			"version": "Version",
@@ -29,11 +28,7 @@
 			"test": "Test",
 			"testSources": "Test All Sources",
 			"isCachedIconVisible": "isCachedIconVisible",
-			"songsNumsToLoad": "Songs Nums to Load",
-			"managePlugins": "Manage Plugins",
-            "importPluginFromFile": "Import from File",
-            "importPluginFromUrl": "Import from URL",
-            "noPluginsInstalled": "No plugins installed"
+			"songsNumsToLoad": "Songs Nums to Load"
 		},
 		"actions": {
 			"import": {

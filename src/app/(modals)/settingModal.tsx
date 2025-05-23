@@ -1,6 +1,6 @@
 // src/app/modals/settingModal.tsx
-import { colors } from '@/constants/tokens';
-import { logError, logInfo } from '@/helpers/logger';
+import { colors } from '@/constants/tokens'
+import { logError, logInfo } from '@/helpers/logger'
 import myTrackPlayer, {
 	autoCacheLocalStore,
 	isCachedIconVisibleStore,
@@ -9,17 +9,17 @@ import myTrackPlayer, {
 	nowApiState,
 	songsNumsToLoadStore,
 	useCurrentQuality,
-} from '@/helpers/trackPlayerIndex';
-import PersistStatus from '@/store/PersistStatus';
-import i18n, { changeLanguage, nowLanguage } from '@/utils/i18n'; // 确保 i18n 已导入
-import { GlobalState } from '@/utils/stateMapper';
-import { showToast } from '@/utils/utils';
-import { MenuView } from '@react-native-menu/menu';
-import { Buffer } from 'buffer';
-import Constants from 'expo-constants';
-import * as DocumentPicker from 'expo-document-picker';
-import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+} from '@/helpers/trackPlayerIndex'
+import PersistStatus from '@/store/PersistStatus'
+import i18n, { changeLanguage, nowLanguage } from '@/utils/i18n'
+import { GlobalState } from '@/utils/stateMapper'
+import { showToast } from '@/utils/utils'
+import { MenuView } from '@react-native-menu/menu'
+import { Buffer } from 'buffer'
+import Constants from 'expo-constants'
+import * as DocumentPicker from 'expo-document-picker'
+import { useRouter } from 'expo-router'
+import React, { useEffect, useState } from 'react'
 import {
 	ActivityIndicator,
 	Alert,
@@ -31,10 +31,10 @@ import {
 	Text,
 	TouchableOpacity,
 	View,
-} from 'react-native';
-import RNFS from 'react-native-fs';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Toast, { BaseToast, ErrorToast } from 'react-native-toast-message';
+} from 'react-native'
+import RNFS from 'react-native-fs'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import Toast, { BaseToast, ErrorToast } from 'react-native-toast-message'
 const QUALITY_OPTIONS = ['128k', '320k', 'flac']
 const CURRENT_VERSION = Constants.expoConfig?.version ?? '未知版本'
 
@@ -465,17 +465,6 @@ const SettingModal = () => {
 				},
 			],
 		},
-        {
-			title: i18n.t('settings.sections.pluginManagement'),
-			data: [
-				{
-					id: 'manage_plugins',
-					title: i18n.t('settings.items.managePlugins'),
-					type: 'value', // Using 'value' to get the arrow
-					onPress: () => router.push('/(modals)/pluginManagementModal'),
-				},
-			],
-		},
 		{
 			title: i18n.t('settings.sections.customSource'),
 			data: [
@@ -707,10 +696,6 @@ const SettingModal = () => {
 					index === sectionData.length - 1 && styles.lastItem,
 				]}
 				onPress={() => {
-                    if (item.onPress) { // Handle items with onPress directly
-                        item.onPress();
-                        return;
-                    }
 					if (item.title === i18n.t('settings.items.viewLogs')) {
 						router.push('/(modals)/logScreen')
 					}
@@ -757,9 +742,7 @@ const SettingModal = () => {
 							}}
 						/>
 					)}
-					{item.type === 'value' && !item.customRender && !item.onPress &&( // Ensure onPress isn't present for default value rendering
-						<Text style={styles.itemValue}>{item.value}</Text>
-					)}
+					{item.type === 'value' && <Text style={styles.itemValue}>{item.value}</Text>}
 					{item.title === i18n.t('settings.items.currentQuality') && (
 						<MusicQualityMenu currentQuality={currentQuality} onSelectQuality={setCurrentQuality} />
 					)}
@@ -770,7 +753,7 @@ const SettingModal = () => {
 						<MusicSourceMenu isDelete={true} onSelectSource={handleDeleteSource} />
 					)}
 					{item.title === i18n.t('settings.items.importSource') && importMusicSourceMenu}
-					{(item.type === 'link' || (item.type === 'value' && item.onPress)) &&
+					{(item.type === 'link' || item.title === i18n.t('settings.items.projectLink')) &&
 						!item.icon && <Text style={styles.arrowRight}>{'>'}</Text>}
 					{item.title === i18n.t('settings.items.autoCacheLocal') && toggleAutoCacheLocalMenu}
 					{item.title === i18n.t('settings.items.changeLanguage') && changeLanguageMenu}

@@ -5,8 +5,7 @@
 			"appInfo": "应用信息",
 			"audioSettings": "音频设置",
 			"customSource": "自定义音源",
-			"qualitySelection": "音质选择",
-			"pluginManagement": "插件管理"
+			"qualitySelection": "音质选择"
 		},
 		"items": {
 			"version": "版本号",
@@ -29,11 +28,7 @@
 			"test": "测试",
 			"testSources": "测试所有音源",
 			"isCachedIconVisible": "是否显示已缓存图标",
-			"songsNumsToLoad": "首页播放歌曲数量",
-			"managePlugins": "管理插件",
-            "importPluginFromFile": "从文件导入",
-            "importPluginFromUrl": "从URL导入",
-            "noPluginsInstalled": "暂无插件"
+			"songsNumsToLoad": "首页播放歌曲数量"
 		},
 		"actions": {
 			"import": {

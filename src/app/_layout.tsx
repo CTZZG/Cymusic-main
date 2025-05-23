@@ -3,7 +3,7 @@ import { colors } from '@/constants/tokens'
 import LyricManager from '@/helpers/lyricManager'
 import { useLogTrackPlayerState } from '@/hooks/useLogTrackPlayerState'
 import { useSetupTrackPlayer } from '@/hooks/useSetupTrackPlayer'
-import i18n, { setI18nConfig } from '@/utils/i18n'; // 确保 i18n 已导入
+import i18n, { setI18nConfig } from '@/utils/i18n'
 import { router, SplashScreen, Stack } from 'expo-router'
 import { ShareIntentProvider, useShareIntentContext } from 'expo-share-intent'
 import { StatusBar } from 'expo-status-bar'
@@ -172,23 +172,6 @@ const RootNavigation = () => {
 					headerShown: false,
 					gestureEnabled: true,
 					gestureDirection: 'vertical',
-				}}
-			/>
-            {/* 新增插件管理页面的路由配置 */}
-			<Stack.Screen
-				name="(modals)/pluginManagementModal"
-				options={{
-					presentation: 'modal',
-					headerShown: true,
-					gestureEnabled: true,
-					gestureDirection: 'vertical',
-					headerTitle: i18n.t('settings.sections.pluginManagement'),
-					headerStyle: {
-						backgroundColor: colors.background,
-					},
-					headerTitleStyle: {
-						color: colors.text,
-					},
 				}}
 			/>
 			<Stack.Screen
