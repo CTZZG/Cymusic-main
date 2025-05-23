@@ -482,7 +482,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "/Users/gyc/Code/Cymusic/ios/ShareExtension/ShareExtension-Info.plist";
+				INFOPLIST_FILE = "ShareExtension/ShareExtension-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "CyMusic - Share Extension";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -640,7 +640,7 @@
 					"$(inherited)",
 				);
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "/Users/gyc/Code/Cymusic/ios/ShareExtension/ShareExtension-Info.plist";
+				INFOPLIST_FILE = "ShareExtension/ShareExtension-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "CyMusic - Share Extension";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
