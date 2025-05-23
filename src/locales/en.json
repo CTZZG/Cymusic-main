@@ -251,6 +251,6 @@
         "successImport": "Successfully imported {count} songs into \"{playlistName}\". You can import another or close this modal.",
         "errorImportFailedNoSongs": "Failed to import playlist from {platformName}. No songs returned or import failed.",
         "errorImportFailedGeneric": "Import failed: {message}",
-        "errorImportCheckUrl": "Please check the URL and selected source." // Used if err.message is null
+        "errorImportCheckUrl": "Please check the URL and selected source."
     }
 }
