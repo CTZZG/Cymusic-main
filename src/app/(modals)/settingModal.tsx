@@ -1,6 +1,6 @@
 // src/app/modals/settingModal.tsx
-import { colors } from '@/constants/tokens'
-import { logError, logInfo } from '@/helpers/logger'
+import { colors } from '@/constants/tokens';
+import { logError, logInfo } from '@/helpers/logger';
 import myTrackPlayer, {
 	autoCacheLocalStore,
 	isCachedIconVisibleStore,
@@ -9,17 +9,17 @@ import myTrackPlayer, {
 	nowApiState,
 	songsNumsToLoadStore,
 	useCurrentQuality,
-} from '@/helpers/trackPlayerIndex'
-import PersistStatus from '@/store/PersistStatus'
+} from '@/helpers/trackPlayerIndex';
+import PersistStatus from '@/store/PersistStatus';
 import i18n, { changeLanguage, nowLanguage } from '@/utils/i18n'; // 确保 i18n 已导入
-import { GlobalState } from '@/utils/stateMapper'
-import { showToast } from '@/utils/utils'
-import { MenuView } from '@react-native-menu/menu'
-import { Buffer } from 'buffer'
-import Constants from 'expo-constants'
-import * as DocumentPicker from 'expo-document-picker'
-import { useRouter } from 'expo-router'
-import React, { useEffect, useState } from 'react'
+import { GlobalState } from '@/utils/stateMapper';
+import { showToast } from '@/utils/utils';
+import { MenuView } from '@react-native-menu/menu';
+import { Buffer } from 'buffer';
+import Constants from 'expo-constants';
+import * as DocumentPicker from 'expo-document-picker';
+import { useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
 import {
 	ActivityIndicator,
 	Alert,
@@ -31,10 +31,10 @@ import {
 	Text,
 	TouchableOpacity,
 	View,
-} from 'react-native'
-import RNFS from 'react-native-fs'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import Toast, { BaseToast, ErrorToast } from 'react-native-toast-message'
+} from 'react-native';
+import RNFS from 'react-native-fs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Toast, { BaseToast, ErrorToast } from 'react-native-toast-message';
 const QUALITY_OPTIONS = ['128k', '320k', 'flac']
 const CURRENT_VERSION = Constants.expoConfig?.version ?? '未知版本'
 

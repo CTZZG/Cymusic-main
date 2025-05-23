@@ -6,14 +6,14 @@ import i18n from '@/utils/i18n'
 import debounce from 'lodash/debounce'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
-	Animated,
-	Dimensions,
-	Platform,
-	Pressable,
-	SafeAreaView,
-	StyleSheet,
-	Text,
-	View,
+    Animated,
+    Dimensions,
+    Platform,
+    Pressable,
+    SafeAreaView,
+    StyleSheet,
+    Text,
+    View,
 } from 'react-native'
 import { Track } from 'react-native-track-player'
 
@@ -72,7 +72,18 @@ const SearchlistsScreen = () => {
 			setIsLoading(true)
 
 			try {
-				const { data, hasMore: moreResults } = await searchAll(search, currentPage, searchType)
+				// Try to use the plugin-based search first, fall back to the original search
+				let data, moreResults;
+				try {
+					const result = await searchAllPlugins(search, currentPage, searchType);
+					data = result.data;
+					moreResults = result.hasMore;
+				} catch (e) {
+					console.log('Plugin search failed, falling back to original search', e);
+					const result = await searchAll(search, currentPage, searchType);
+					data = result.data;
+					moreResults = result.hasMore;
+				}
 
 				if (requestId === searchRequestRef.current) {
 					setHasMore(moreResults)
