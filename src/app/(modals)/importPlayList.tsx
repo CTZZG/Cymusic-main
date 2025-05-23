@@ -2,13 +2,13 @@ import { unknownTrackImageUri } from '@/constants/images'
 import { colors, screenPadding } from '@/constants/tokens'
 import { logError } from '@/helpers/logger'
 import myTrackPlayer from '@/helpers/trackPlayerIndex'
-import { getPlayListFromQ } from '@/helpers/userApi/getMusicSource'
+// Removed: import { getPlayListFromQ } from '@/helpers/userApi/getMusicSource'
 import { defaultStyles } from '@/styles'
 import { Ionicons } from '@expo/vector-icons'
 import { useHeaderHeight } from '@react-navigation/elements'
 import * as ImagePicker from 'expo-image-picker'
 import { router } from 'expo-router'
-import React, { useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import {
 	ActivityIndicator,
 	Image,
@@ -23,19 +23,50 @@ import {
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
-const ImportPlayList = () => {
-	const [playlistUrl, setPlaylistUrl] = useState('')
-	const [playlistData, setPlaylistData] = useState(null)
-	const [isLoading, setIsLoading] = useState(false)
-	const [error, setError] = useState(null)
-	const [customName, setCustomName] = useState('')
-	const [coverImage, setCoverImage] = useState(null)
+// New imports for plugin functionality
+import pluginManager from '@/helpers/PluginManager'
+import { importMusicSheetFromPlugin } from '@/helpers/pluginDataFetchers'
+import { IMusic, IPlugin } from '@/types' // Assuming ManagedPlugin might be part of IPlugin or defined in PluginManager.ts
 
-	const nameInputRef = useRef(null)
-	const urlInputRef = useRef(null)
+// Minimal ManagedPlugin interface if not directly importable / for structural reference
+interface ManagedPlugin extends IPlugin.IPluginDefine {
+    id: string;
+    filePath: string;
+    userConfig: { userVariables?: Record<string, string>; isEnabled?: boolean };
+    instance?: IPlugin.IPluginDefine;
+}
+
+
+const ImportPlayListModal = () => {
+	const [playlistUrl, setPlaylistUrl] = useState('')
+	const [playlistData, setPlaylistData] = useState<IMusic.PlayList | null>(null) // For success message
+	const [isLoading, setIsLoading] = useState(false)
+	const [error, setError] = useState<string | null>(null)
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
+	const [customName, setCustomName] = useState('')
+	const [coverImage, setCoverImage] = useState<string | null>(null)
+
+	// State for plugin selection
+	const [plugins, setPlugins] = useState<ManagedPlugin[]>([]);
+	const [selectedPluginPlatform, setSelectedPluginPlatform] = useState<string | null>(null);
+
+
+	const nameInputRef = useRef<TextInput>(null)
+	const urlInputRef = useRef<TextInput>(null)
 
 	const headerHeight = useHeaderHeight()
 	const { top } = useSafeAreaInsets()
+
+    useEffect(() => {
+        const availablePlugins = pluginManager.getActivePlugins().filter(
+            p => p.instance?.importMusicSheet && p.userConfig.isEnabled !== false
+        );
+        setPlugins(availablePlugins);
+        // Optionally select the first one by default
+        // if (availablePlugins.length > 0) {
+        //     setSelectedPluginPlatform(availablePlugins[0].platform);
+        // }
+    }, []);
 
 	const pickImage = async () => {
 		const result = await ImagePicker.launchImageLibraryAsync({
@@ -57,19 +88,19 @@ const ImportPlayList = () => {
 		}
 		setIsLoading(true)
 		setError(null)
-		console.log('coverImage', coverImage)
+        setSuccessMessage(null);
 		try {
-			const newPlaylist = {
+			const newPlaylist: IMusic.PlayList = {
 				id: Date.now().toString(),
-				platform: 'QQ',
-				artist: '未知歌手',
+				platform: 'local', // Or some identifier for user-created playlists
+				artist: 'Various Artists', // Default artist
 				name: customName.trim(),
 				title: customName.trim(),
 				songs: [],
 				artwork: coverImage || unknownTrackImageUri,
-				tracks: [],
+				// tracks: [], // 'tracks' is not standard in IMusic.PlayList, 'songs' is used
 			}
-			await myTrackPlayer.addPlayLists(newPlaylist as IMusic.PlayList)
+			await myTrackPlayer.addPlayLists(newPlaylist)
 			router.dismiss()
 		} catch (err) {
 			setError('创建失败，请重试')
@@ -80,27 +111,48 @@ const ImportPlayList = () => {
 	}
 
 	const handleImport = async () => {
+        if (!selectedPluginPlatform) {
+            setError('Please select a source to import from.');
+            setSuccessMessage(null);
+            return;
+        }
+        if (!playlistUrl.trim()) {
+            setError('Please enter the playlist URL or ID.');
+            setSuccessMessage(null);
+            return;
+        }
+
 		setIsLoading(true)
 		setError(null)
+        setSuccessMessage(null);
 		try {
-			if (!playlistUrl.includes('id=')) throw new Error('链接格式不正确')
-			if (!playlistUrl) throw new Error('链接不能为空')
-			// 发起实际的网络请求
-			const match = playlistUrl.match(/[?&]id=(\d+)/)
-			const response = await getPlayListFromQ(match ? match[1] : null)
-			// 设置数据
-			// console.log(JSON.stringify(response) + '12312312')
-			const processedResponse: any = {
-				...response,
-				title: response.title || response.name || '未知歌单', // 如果 title 为空，使用 name
-			}
-			setPlaylistData(processedResponse)
-			myTrackPlayer.addPlayLists(processedResponse as IMusic.PlayList)
-			router.dismiss()
-		} catch (err) {
-			setError('导入失败，请检查链接是否正确')
-			// myTrackPlayer.deletePlayLists('7570659434')
-			logError('导入错误:', err)
+            const importedSongs = await importMusicSheetFromPlugin(selectedPluginPlatform, playlistUrl);
+
+            if (importedSongs && importedSongs.length > 0) {
+                const playlistName = customName.trim() || `Imported from ${selectedPluginPlatform}`;
+                const newPlaylist: IMusic.PlayList = {
+                    id: Date.now().toString(),
+                    platform: selectedPluginPlatform, // Use the plugin's platform
+                    artist: 'Various Artists', // Placeholder, could be improved
+                    name: playlistName,
+                    title: playlistName,
+                    songs: importedSongs,
+                    artwork: coverImage || importedSongs[0]?.artwork || unknownTrackImageUri,
+                };
+                await myTrackPlayer.addPlayLists(newPlaylist);
+                setPlaylistData(newPlaylist); // For success message context
+                setPlaylistUrl('');
+                // setCustomName(''); // Keep custom name if user wants to import another with same name
+                // setCoverImage(null); // Keep cover image if user wants to import another with same cover
+                setError(null);
+                setSuccessMessage(`Successfully imported ${importedSongs.length} songs into "${playlistName}". You can import another or close this modal.`);
+                // router.dismiss(); // Keep modal open
+            } else {
+                setError(`Failed to import playlist from ${selectedPluginPlatform}. No songs returned or import failed.`);
+            }
+		} catch (err: any) {
+			setError(`Import failed: ${err.message || 'Please check the URL and selected source.'}`);
+			logError('Import error:', err)
 		} finally {
 			setIsLoading(false)
 		}
@@ -124,10 +176,11 @@ const ImportPlayList = () => {
 					contentContainerStyle={{ flexGrow: 1 }}
 					keyboardShouldPersistTaps="handled"
 				>
-					<Text style={styles.header}>导入/创建歌单</Text>
+					<Text style={styles.header}>Import / Create Playlist</Text>
 
+					{/* Create New Playlist Section (remains largely the same) */}
 					<View style={styles.section}>
-						<Text style={styles.sectionTitle}>创建新歌单</Text>
+						<Text style={styles.sectionTitle}>Create New Playlist</Text>
 						<View style={styles.createPlaylistCard}>
 							<View style={styles.createPlaylistContainer}>
 								<View style={styles.coverContainer}>
@@ -137,12 +190,11 @@ const ImportPlayList = () => {
 										) : (
 											<View style={styles.coverPlaceholder}>
 												<Ionicons name="image-outline" size={24} color={colors.primary} />
-												<Text style={styles.coverText}>选择封面</Text>
+												<Text style={styles.coverText}>Choose Cover</Text>
 											</View>
 										)}
 									</TouchableOpacity>
 								</View>
-
 								<View style={styles.playlistInfoContainer}>
 									<View style={[styles.inputContainer, { marginBottom: 0 }]}>
 										<TextInput
@@ -150,33 +202,26 @@ const ImportPlayList = () => {
 											style={styles.input}
 											value={customName}
 											onChangeText={setCustomName}
-											placeholder="输入歌单名称"
+											placeholder="Enter playlist name (optional for import)"
 											placeholderTextColor="#999"
 											autoCapitalize="none"
-											autoCorrect={false}
-											keyboardType="default"
 											returnKeyType="done"
-											blurOnSubmit={true}
-											onSubmitEditing={() => nameInputRef.current?.blur()}
-											enablesReturnKeyAutomatically={true}
-											clearButtonMode="while-editing"
 										/>
 									</View>
 								</View>
 							</View>
-
 							<TouchableOpacity
 								onPress={handleCreatePlaylist}
 								activeOpacity={0.8}
 								style={styles.button}
-								disabled={isLoading}
+								disabled={isLoading && selectedPluginPlatform !== null} // Disable if importing
 							>
-								{isLoading ? (
+								{isLoading && !selectedPluginPlatform ? (
 									<ActivityIndicator color="#fff" />
 								) : (
 									<>
 										<Ionicons name="add-circle-outline" size={24} color={colors.primary} />
-										<Text style={styles.buttonText}>创建歌单</Text>
+										<Text style={styles.buttonText}>Create Playlist</Text>
 									</>
 								)}
 							</TouchableOpacity>
@@ -185,40 +230,55 @@ const ImportPlayList = () => {
 
 					<View style={styles.divider} />
 
+					{/* Import Existing Playlist Section - Modified for Plugins */}
 					<View style={styles.section}>
-						<Text style={styles.sectionTitle}>导入已有歌单</Text>
+						<Text style={styles.sectionTitle}>Import Playlist from Source</Text>
 						<View style={styles.createPlaylistCard}>
+                            <View style={styles.pluginSelectorContainer}>
+                                <Text style={styles.inputLabel}>Select Source:</Text>
+                                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.pluginScrollView}>
+                                    {plugins.map(p => (
+                                        <TouchableOpacity
+                                            key={p.platform}
+                                            style={[
+                                                styles.pluginButton,
+                                                selectedPluginPlatform === p.platform && styles.pluginButtonSelected
+                                            ]}
+                                            onPress={() => setSelectedPluginPlatform(p.platform)}
+                                        >
+                                            <Text style={styles.pluginButtonText}>{p.platform}</Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </ScrollView>
+                                {plugins.length === 0 && <Text style={styles.infoText}>No importable plugin sources found.</Text>}
+                            </View>
+
 							<View style={styles.importContainer}>
 								<TextInput
 									ref={urlInputRef}
 									style={styles.input}
 									value={playlistUrl}
 									onChangeText={setPlaylistUrl}
-									placeholder='🔗输入企鹅音乐歌单链接要有"id="字样'
+									placeholder="Enter playlist URL or ID from selected source"
 									placeholderTextColor="#999"
 									autoCapitalize="none"
-									autoCorrect={false}
 									keyboardType="url"
 									returnKeyType="done"
-									blurOnSubmit={true}
-									onSubmitEditing={() => urlInputRef.current?.blur()}
-									enablesReturnKeyAutomatically={true}
-									clearButtonMode="while-editing"
 								/>
 							</View>
 
 							<TouchableOpacity
 								onPress={handleImport}
 								activeOpacity={0.8}
-								style={styles.button}
-								disabled={isLoading}
+								style={[styles.button, (!selectedPluginPlatform || isLoading) && styles.buttonDisabled]}
+								disabled={isLoading || !selectedPluginPlatform}
 							>
-								{isLoading ? (
+								{isLoading && selectedPluginPlatform !== null ? ( // Show loader only when importing
 									<ActivityIndicator color="#fff" />
 								) : (
 									<>
 										<Ionicons name="cloud-download-outline" size={24} color={colors.primary} />
-										<Text style={styles.buttonText}>导入歌单</Text>
+										<Text style={styles.buttonText}>Import Playlist</Text>
 									</>
 								)}
 							</TouchableOpacity>
@@ -226,9 +286,11 @@ const ImportPlayList = () => {
 					</View>
 
 					{error && <Text style={styles.error}>{error}</Text>}
-					{playlistData && (
-						<Text style={styles.successText}>导入成功! 歌单名称: {playlistData.name}</Text>
-					)}
+					{successMessage && <Text style={styles.successText}>{successMessage}</Text>}
+                    {/* Kept for context, but success is now handled by successMessage state */}
+					{/* {playlistData && !error && ( 
+						<Text style={styles.successText}>Imported: {playlistData.name}</Text>
+					)} */}
 				</ScrollView>
 			</KeyboardAvoidingView>
 		</SafeAreaView>
@@ -249,13 +311,16 @@ const styles = StyleSheet.create({
 		color: colors.text,
 		marginBottom: 16,
 	},
+    infoText: {
+        color: colors.textMuted,
+        fontSize: 14,
+        textAlign: 'center',
+        marginTop: 5,
+    },
 	divider: {
 		height: 1,
 		backgroundColor: 'rgba(255, 255, 255, 0.1)',
 		marginVertical: 24,
-	},
-	buttonContainer: {
-		marginTop: 0,
 	},
 	dismissSymbol: {
 		position: 'absolute',
@@ -326,12 +391,16 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 	},
 	error: {
-		color: '#ff3b30',
+		color: '#ff3b30', // iOS system red
+        textAlign: 'center',
 		marginTop: 10,
+        paddingHorizontal: 10,
 	},
 	successText: {
-		color: '#34c759',
+		color: '#34c759', // iOS system green
+        textAlign: 'center',
 		marginTop: 10,
+        paddingHorizontal: 10,
 	},
 	button: {
 		padding: 12,
@@ -343,6 +412,9 @@ const styles = StyleSheet.create({
 		columnGap: 8,
 		width: '100%',
 	},
+    buttonDisabled: {
+        opacity: 0.5,
+    },
 	buttonText: {
 		...defaultStyles.text,
 		color: colors.primary,
@@ -369,6 +441,29 @@ const styles = StyleSheet.create({
 	importContainer: {
 		width: '100%',
 	},
+    pluginSelectorContainer: {
+        marginBottom: 16,
+    },
+    pluginScrollView: {
+        maxHeight: 60, // Limit height if many plugins
+    },
+    pluginButton: {
+        paddingVertical: 8,
+        paddingHorizontal: 12,
+        backgroundColor: '#2C2C2F',
+        borderRadius: 8,
+        marginRight: 10,
+        borderWidth: 1,
+        borderColor: 'transparent',
+    },
+    pluginButtonSelected: {
+        borderColor: colors.primary,
+        backgroundColor: colors.primaryMuted,
+    },
+    pluginButtonText: {
+        color: colors.text,
+        fontSize: 14,
+    },
 })
 
-export default ImportPlayList
+export default ImportPlayListModal

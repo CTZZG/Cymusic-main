@@ -93,10 +93,12 @@
 	"appTab": {
 		"songs": "音乐",
 		"search": "搜索",
-		"radio": "广播",
+		"radio": "电台",
 		"favorites": "收藏",
 		"favoritesSongs": "喜欢的歌曲",
-		"localOrCachedSongs": "本地/缓存的歌曲"
+		"localOrCachedSongs": "本地/缓存的歌曲",
+        "topLists": "排行榜",
+        "topListDetail": "榜单详情"
 	},
 	"addToPlaylist": {
 		"title": "导入歌单",
@@ -104,7 +106,7 @@
 		"import": "导入"
 	},
 	"find": {
-		"inRadio": "在广播中搜索",
+		"inRadio": "在电台中搜索",
 		"inSearch": "在线搜索歌曲或歌手",
 		"inSongs": "在歌曲中搜索",
 		"inFavorites": "在收藏中搜索",
@@ -153,7 +155,103 @@
 		"removeFromPlayingList": "从播放列表移除",
 		"showArtist": "查看歌手",
 		"addToPlaylist": "添加到歌单",
-
 		"delete": "删除"
-	}
+	},
+    "common": {
+        "error": "错误",
+        "success": "成功",
+        "cancel": "取消",
+        "confirm": "确定",
+        "ok": "确定",
+        "loading": "加载中..."
+    },
+    "pluginManagement": {
+        "title": "插件管理",
+        "addNewPlugin": "添加新插件",
+        "loadFromFile": "从文件加载插件",
+        "orSeparator": "或",
+        "pasteScriptPlaceholder": "在此处粘贴插件脚本",
+        "addFromScript": "从脚本添加",
+        "installedPlugins": "已安装插件",
+        "noPluginsInstalled": "未安装任何插件。",
+        "versionNA": "无版本",
+        "byAuthor": "作者：{author}",
+        "configure": "配置",
+        "remove": "移除",
+        "errorFailedUpdateStatus": "更新插件状态失败：{message}",
+        "errorScriptEmpty": "脚本输入不能为空。",
+        "successPluginAddedFromScript": "已从脚本添加插件。",
+        "errorAddingPlugin": "添加插件出错",
+        "successPluginAddedFromFile": "插件 \"{fileName}\" 添加成功。",
+        "errorPickingFile": "选择插件文件出错",
+        "confirmRemoveTitle": "确认移除",
+        "confirmRemoveMessage": "您确定要移除此插件吗？此操作无法撤销。",
+        "cancelButton": "取消",
+        "removeButton": "移除",
+        "successPluginRemoved": "插件已移除。",
+        "errorRemovingPlugin": "移除插件出错",
+        "errorPluginIdMissing": "缺少插件ID，无法导航至配置页面。",
+        "importSingleItemTitle": "导入单个音乐项目",
+        "selectPluginSource": "选择插件源：",
+        "musicItemUrlPlaceholder": "输入URL或ID",
+        "importButton": "导入音乐项目",
+        "errorSelectPlugin": "请选择一个插件源。",
+        "errorEnterUrl": "请输入音乐项目URL或ID。",
+        "successTrackImported": "歌曲 \"{title}\" 导入成功。您可以将其添加到播放列表。",
+        "importFailedCheckUrl": "无法导入音乐项目。请检查URL或插件。",
+        "importFailedError": "导入失败：{message}",
+        "noPluginsSupportSingleImport": "没有支持单项导入的插件。"
+    },
+    "pluginVariableConfig": {
+        "title": "配置：{platformName}",
+        "loading": "加载中...",
+        "pluginNotFound": "未找到插件。",
+        "pluginNotFoundNavigatingBack": "未找到插件。正在返回...",
+        "noVariables": "此插件没有可配置的变量。",
+        "enterValuePlaceholder": "输入 {key} 的值",
+        "saveChangesButton": "保存更改",
+        "errorPluginIdNotFound": "未找到ID为 \"{pluginId}\" 的插件。",
+        "errorNoPluginId": "未提供插件ID。",
+        "successConfigSaved": "配置已成功保存。",
+        "errorConfigSaveFailed": "保存配置失败：{message}",
+        "unknownError": "未知错误"
+    },
+    "topLists": {
+        "title": "排行榜",
+        "noListsAvailable": "暂无排行榜。"
+    },
+    "topListDetail": {
+        "detailsNotFound": "未找到排行榜详情。",
+        "artworkFor": "{title} 的封面",
+        "titleFallback": "排行榜详情",
+        "noSongs": "此列表中暂无歌曲。"
+    },
+    "radioScreen": {
+        "pinnedTags": "置顶标签",
+        "noPinnedTags": "暂无置顶标签。",
+        "tagsFallbackTitle": "标签",
+        "noTagsInGroup": "此分组中暂无标签。",
+        "playlistsForTag": "\"{tagName}\" 的歌单 ({platformName})",
+        "noPlaylistsForTag": "此标签下暂无歌单。"
+    },
+    "importPlaylistModal": {
+        "header": "导入/创建歌单",
+        "createNewPlaylist": "创建新歌单",
+        "chooseCover": "选择封面",
+        "playlistNamePlaceholder": "输入歌单名称（导入时可选）",
+        "createPlaylistButton": "创建歌单",
+        "errorEnterPlaylistName": "请输入歌单名称",
+        "errorCreateFailed": "创建失败，请重试",
+        "importFromSource": "从源导入歌单",
+        "selectSourceLabel": "选择源：",
+        "noImportPlugins": "未找到可导入的插件源。",
+        "urlIdPlaceholder": "从选定源输入歌单URL或ID",
+        "importPlaylistButton": "导入歌单",
+        "errorSelectSource": "请选择一个源进行导入。",
+        "errorEnterUrlOrId": "请输入歌单URL或ID。",
+        "successImport": "成功将 {count} 首歌曲导入到 \"{playlistName}\"。您可以继续导入或关闭此窗口。",
+        "errorImportFailedNoSongs": "从 {platformName} 导入歌单失败。未返回歌曲或导入失败。",
+        "errorImportFailedGeneric": "导入失败：{message}",
+        "errorImportCheckUrl": "请检查URL和选定的源。"
+    }
 }

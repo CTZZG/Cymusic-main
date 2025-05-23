@@ -31,12 +31,13 @@ import { createMediaIndexMap } from '@/utils/mediaIndexMap'
 import { musicIsPaused } from '@/utils/trackUtils'
 import { Alert, AppState, Image } from 'react-native'
 
-import { myGetLyric } from '@/helpers/userApi/getMusicSource'
+// import { myGetLyric } from '@/helpers/userApi/getMusicSource' // Will be removed by plugin logic
 
 import { fakeAudioMp3Uri } from '@/constants/images'
 import { nowLanguage } from '@/utils/i18n'
 import { showToast } from '@/utils/utils'
 import { logError, logInfo } from './logger'
+import pluginManager from './PluginManager'
 
 /** 当前播放 */
 const currentMusicStore = new GlobalState<IMusic.IMusicItem | null>(null)
@@ -814,6 +815,46 @@ const play = async (musicItem?: IMusic.IMusicItem | null, forcePlay?: boolean) =
 		//reset的时机？
 		//await ReactNativeTrackPlayer.reset();
 
+		// Attempt to enrich musicItem with more details using getMusicInfo from plugin
+		if (musicItem) {
+			const platform = musicItem.platform;
+			const plugin = pluginManager.getPlugin(platform);
+
+			if (plugin && plugin.instance?.getMusicInfo && plugin.userConfig.isEnabled !== false) {
+				try {
+					logInfo(`尝试从插件 ${platform} 获取详细音乐信息 for ${musicItem.title}`);
+					const musicInfoUpdate = await plugin.instance.getMusicInfo(musicItem);
+					if (musicInfoUpdate) {
+						const currentMusicInStore = currentMusicStore.getValue();
+						// Ensure we're updating the same item that's in the store, or the local musicItem if it's different initially
+						if (isSameMediaItem(currentMusicInStore, musicItem)) {
+							const enrichedMusicItem = mergeProps(currentMusicInStore!, musicInfoUpdate) as IMusic.IMusicItem;
+							currentMusicStore.setValue(enrichedMusicItem);
+							musicItem = enrichedMusicItem; // Update the local musicItem reference as well
+							logInfo(`插件 ${platform} 成功获取并更新了 ${musicItem.title} 的详细信息.`);
+						} else {
+							// This case should ideally not happen if setCurrentMusic was just called with musicItem
+							// but as a fallback, update the local musicItem
+							musicItem = mergeProps(musicItem, musicInfoUpdate) as IMusic.IMusicItem;
+							logInfo(`插件 ${platform} 成功获取了 ${musicItem.title} 的详细信息 (local item updated).`);
+						}
+					} else {
+						logInfo(`插件 ${platform} getMusicInfo 返回 null for ${musicItem.title}.`);
+					}
+				} catch (e) {
+					logError(`插件 ${platform} getMusicInfo 获取详细音乐信息时出错 for ${musicItem.title}:`, e);
+				}
+			} else {
+				if (!plugin) {
+					logInfo(`平台 ${platform} 的插件未找到，无法获取详细音乐信息.`);
+				} else if (plugin.userConfig.isEnabled === false) {
+					logInfo(`插件 ${platform} 已禁用，无法获取详细音乐信息.`);
+				} else if (!plugin.instance?.getMusicInfo) {
+					logInfo(`插件 ${platform} 未实现 getMusicInfo 方法，无法获取详细音乐信息.`);
+				}
+			}
+		}
+
 		// 5. 获取音源
 		let track: IMusic.IMusicItem
 
@@ -848,83 +889,86 @@ const play = async (musicItem?: IMusic.IMusicItem | null, forcePlay?: boolean) =
 		}
 		if (!source) {
 			if ((!source && musicItem.url == 'Unknown') || musicItem.url.includes('fake')) {
-				logInfo('没有url')
-				let resp_url = null
-				const nowMusicApi = musicApiSelectedStore.getValue()
-				// logInfo(nowMusicApi)
+				logInfo('没有url, 尝试从插件获取')
+				const platform = musicItem.platform
+				const plugin = pluginManager.getPlugin(platform)
 
-				if (nowMusicApi == null) {
-					showToast('错误', '获取音乐失败，请先导入音源。', 'error')
-					// Alert.alert('错误', '获取音乐失败，请先导入音源。', [
-					//     { text: '确定', onPress: () => logInfo('Alert closed') },
-					// ])
-					return
-				} else {
-					try {
-						const timeoutPromise = new Promise((_, reject) => {
-							setTimeout(() => reject(new Error('请求超时')), 5000)
-						})
-						// 定义音质降级顺序
-						const qualityOrder: IMusic.IQualityKey[] = ['flac', '320k', '128k']
-						let currentQualityIndex = qualityOrder.indexOf(qualityStore.getValue())
-
-						// 尝试不同音质，直到获取到可用的URL或尝试完所有音质
-						while (currentQualityIndex < qualityOrder.length && !resp_url) {
-							const currentQuality = qualityOrder[currentQualityIndex]
-							try {
-								resp_url = await Promise.race([
-									nowMusicApi.getMusicUrl(
-										musicItem.title,
-										musicItem.artist,
-										musicItem.id,
-										currentQuality,
-									),
-									timeoutPromise,
-								])
-								logInfo(`音源返回:${resp_url}`)
-								if (!resp_url || resp_url == '') {
-									logInfo(`${currentQuality}音质无可用链接，尝试下一个音质`)
-									currentQualityIndex++
-									continue
-								}
-								// 如果当前音质不是原始请求的音质，显示提示
-								if (resp_url && currentQuality !== qualityStore.getValue()) {
-									showToast('提示', `已自动切换至${currentQuality}音质`, 'info')
-									// 更新当前音质设置
-									setQuality(currentQuality)
-								}
-								logInfo(`成功获取${currentQuality}音质的音乐URL:`, resp_url)
-							} catch (error) {
-								logInfo(`${currentQuality}音质无可用链接(catch),尝试下一个音质`)
-								logError(`(catch error):`, error)
-								currentQualityIndex++
-							}
-						}
-						if (!resp_url) {
-							nowApiState.setValue('异常')
-							throw new Error('无法获取任何音质的音乐，请稍后重试。')
-						} else {
-							logInfo('最终的音乐 URL:', resp_url)
-							nowApiState.setValue('正常')
-						}
-					} catch (error) {
-						nowApiState.setValue('异常')
-						logError('获取音乐 URL 失败:', error)
-						const errorMessage =
-							error.message === '请求超时'
-								? '获取音乐超时，请稍后重试。'
-								: error.message || '获取音乐失败，请稍后重试。'
-						showToast(errorMessage, '', 'error')
-						// showErrorMessage(errorMessage)
-						resp_url = fakeAudioMp3Uri // 使用假的音频 URL 作为后备
+				if (plugin && plugin.instance?.getMediaSource && plugin.userConfig.isEnabled !== false) {
+					// const env = pluginManager.getEnvForPlugin(plugin.id); // Env not directly passed to getMediaSource
+					let mediaSourceResult: IPlugin.IMediaSourceResult | null = null
+					const qualityOrder: IMusic.IQualityKey[] = ['flac', '320k', '128k']
+					let currentQualityIndex = qualityOrder.indexOf(qualityStore.getValue())
+					if (currentQualityIndex === -1) {
+						// Fallback to default if preferred quality not in order or invalid
+						currentQualityIndex = qualityOrder.indexOf('128k')
 					}
-				}
-				// const resp = await myGetMusicUrl(musicItem, qualityStore.getValue())
+					// Start from the preferred quality, then try others if it fails
+					const qualitiesToTry = [
+						...qualityOrder.slice(currentQualityIndex),
+						...qualityOrder.slice(0, currentQualityIndex),
+					]
 
-				source = {
-					url: resp_url,
+					for (const currentQuality of qualitiesToTry) {
+						try {
+							logInfo(
+								`尝试从插件 ${platform} 获取音质 ${currentQuality} 的音源 for ${musicItem.title}`,
+							)
+							// Note: Plugins are responsible for their own internal timeouts.
+							// We could add a wrapper promise here for a general timeout if needed.
+							mediaSourceResult = await plugin.instance.getMediaSource(
+								musicItem,
+								currentQuality,
+							)
+							if (mediaSourceResult?.url) {
+								source = mediaSourceResult // This includes url, and potentially headers, userAgent
+								logInfo(
+									`插件 ${platform} 提供音质 ${currentQuality} 的音源: ${source.url}`,
+								)
+								if (currentQuality !== qualityStore.getValue()) {
+									showToast('提示', `已自动切换至${currentQuality}音质`, 'info')
+									setQuality(currentQuality) // Update global quality state
+								}
+								nowApiState.setValue('正常')
+								break // Found a URL, exit loop
+							} else {
+								logInfo(
+									`插件 ${platform} 未能为音质 ${currentQuality} 提供音源.`,
+								)
+							}
+						} catch (pluginError) {
+							logError(
+								`插件 ${platform} 获取音质 ${currentQuality} 音源时出错:`,
+								pluginError,
+							)
+							// Continue to next quality
+						}
+					}
+
+					if (!source?.url) {
+						logError(
+							`插件 ${platform} 未能为任何尝试的音质提供有效音源.`,
+						)
+						showToast('错误', `插件 ${platform} 获取音源失败`, 'error')
+						source = { url: fakeAudioMp3Uri }
+						nowApiState.setValue('异常')
+					}
+				} else {
+					if (!plugin) {
+						logError(`平台 ${platform} 的插件未找到.`)
+						showToast('错误', `平台 ${platform} 的插件未找到.`, 'error')
+					} else if (plugin.userConfig.isEnabled === false) {
+						logError(`插件 ${platform} 已禁用.`)
+						showToast('提示', `插件 ${platform} 已禁用.`, 'info')
+					} else if (!plugin.instance?.getMediaSource) {
+						logError(`插件 ${platform} 未实现 getMediaSource 方法.`)
+						showToast('错误', `插件 ${platform} 未实现 getMediaSource 方法.`, 'error')
+					}
+					source = { url: fakeAudioMp3Uri }
+					nowApiState.setValue('异常')
 				}
 			} else {
+				// Existing logic for when musicItem.url is already present and valid (e.g., local files)
+				// This part remains largely the same
 				if (musicItem.url.startsWith('file://')) {
 					const isFileExit = await RNFS.exists(musicItem.url)
 					if (!isFileExit) {
@@ -964,10 +1008,53 @@ const play = async (musicItem?: IMusic.IMusicItem | null, forcePlay?: boolean) =
 		logInfo('获取音源成功：', track)
 		// 9. 设置音源
 		await setTrackSource(track as Track)
-		// 4.1 刷新歌词信息
-		const lyc = await myGetLyric(musicItem)
-		// console.debug(lyc.lyric);
-		nowLyricState.setValue(lyc.lyric)
+		// 4.1 刷新歌词信息 using PluginManager
+		if (musicItem) {
+			const platform = musicItem.platform
+			const plugin = pluginManager.getPlugin(platform)
+			let lyricToSet: string = '[00:00.00]暂无歌词' // Default lyric
+
+			if (plugin && plugin.instance?.getLyric && plugin.userConfig.isEnabled !== false) {
+				try {
+					logInfo(`尝试从插件 ${platform} 获取歌词 for ${musicItem.title}`)
+					const lyricData: ILyric.ILyricSource | null =
+						await plugin.instance.getLyric(musicItem)
+
+					if (lyricData) {
+						if (lyricData.lrc) {
+							lyricToSet = lyricData.lrc
+							logInfo(`插件 ${platform} 提供了 LRC 歌词.`)
+						} else if (lyricData.rawLrc) {
+							// If lrc is not available, rawLrc might be, but it won't be timed.
+							// For now, we'll set it, but a proper LRC component would ideally need timed lyrics.
+							lyricToSet = lyricData.rawLrc
+							logInfo(
+								`插件 ${platform} 提供了 rawLrc 歌词 (无时间戳).`,
+							)
+						} else {
+							logInfo(`插件 ${platform} 未能提供有效的歌词内容.`)
+						}
+						// TODO: Handle lyricData.translation if the UI supports it
+					} else {
+						logInfo(`插件 ${platform} getLyric 返回 null.`)
+					}
+				} catch (e) {
+					logError(`插件 ${platform} 获取歌词时出错:`, e)
+				}
+			} else {
+				if (!plugin) {
+					logInfo(`平台 ${platform} 的插件未找到，无法获取歌词.`)
+				} else if (plugin.userConfig.isEnabled === false) {
+					logInfo(`插件 ${platform} 已禁用，无法获取歌词.`)
+				} else if (!plugin.instance?.getLyric) {
+					logInfo(`插件 ${platform} 未实现 getLyric 方法，无法获取歌词.`)
+				}
+			}
+			nowLyricState.setValue(lyricToSet)
+		} else {
+			nowLyricState.setValue('[00:00.00]暂无歌词') // musicItem was null
+		}
+
 		// 9.1 如果需要缓存,且不是假音频,且不是本地文件
 		if (
 			track.url !== fakeAudioMp3Uri &&

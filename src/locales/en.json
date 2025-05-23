@@ -95,7 +95,9 @@
 		"radio": "Radio",
 		"favorites": "Favorites",
 		"favoritesSongs": "Favorite Songs",
-		"localOrCachedSongs": "Local/Cached Songs"
+		"localOrCachedSongs": "Local/Cached Songs",
+        "topLists": "Top Lists",
+        "topListDetail": "Top List Detail"
 	},
 	"addToPlaylist": {
 		"title": "Import Playlist",
@@ -153,5 +155,102 @@
 		"removeFromFavorites": "Remove from Favorites",
 		"removeFromPlayingList": "Remove from PlayingList",
 		"delete": "Delete"
-	}
+	},
+    "common": {
+        "error": "Error",
+        "success": "Success",
+        "cancel": "Cancel",
+        "confirm": "Confirm",
+        "ok": "OK",
+        "loading": "Loading..."
+    },
+    "pluginManagement": {
+        "title": "Plugin Management",
+        "addNewPlugin": "Add New Plugin",
+        "loadFromFile": "Load Plugin from File",
+        "orSeparator": "OR",
+        "pasteScriptPlaceholder": "Paste plugin script here",
+        "addFromScript": "Add from Script",
+        "installedPlugins": "Installed Plugins",
+        "noPluginsInstalled": "No plugins installed.",
+        "versionNA": "N/A",
+        "byAuthor": "by {author}",
+        "configure": "Configure",
+        "remove": "Remove",
+        "errorFailedUpdateStatus": "Failed to update plugin status: {message}",
+        "errorScriptEmpty": "Script input cannot be empty.",
+        "successPluginAddedFromScript": "Plugin added from script.",
+        "errorAddingPlugin": "Error adding plugin",
+        "successPluginAddedFromFile": "Plugin \"{fileName}\" added successfully.",
+        "errorPickingFile": "Error picking plugin file",
+        "confirmRemoveTitle": "Confirm Removal",
+        "confirmRemoveMessage": "Are you sure you want to remove this plugin? This action cannot be undone.",
+        "cancelButton": "Cancel",
+        "removeButton": "Remove",
+        "successPluginRemoved": "Plugin removed.",
+        "errorRemovingPlugin": "Error removing plugin",
+        "errorPluginIdMissing": "Plugin ID is missing, cannot navigate to configuration.",
+        "importSingleItemTitle": "Import Single Music Item",
+        "selectPluginSource": "Select Plugin Source:",
+        "musicItemUrlPlaceholder": "Enter URL or ID",
+        "importButton": "Import Music Item",
+        "errorSelectPlugin": "Please select a plugin source.",
+        "errorEnterUrl": "Please enter the music item URL or ID.",
+        "successTrackImported": "Track \"{title}\" imported successfully. You might want to add it to a playlist.",
+        "importFailedCheckUrl": "Could not import the music item. Check the URL or plugin.",
+        "importFailedError": "Import failed: {message}",
+        "noPluginsSupportSingleImport": "No plugins support single item import."
+    },
+    "pluginVariableConfig": {
+        "title": "Configure: {platformName}",
+        "loading": "Loading...",
+        "pluginNotFound": "Plugin not found.",
+        "pluginNotFoundNavigatingBack": "Plugin not found. Navigating back...",
+        "noVariables": "This plugin has no configurable variables.",
+        "enterValuePlaceholder": "Enter value for {key}",
+        "saveChangesButton": "Save Changes",
+        "errorPluginIdNotFound": "Plugin with ID \"{pluginId}\" not found.",
+        "errorNoPluginId": "No Plugin ID provided.",
+        "successConfigSaved": "Configuration saved successfully.",
+        "errorConfigSaveFailed": "Failed to save configuration: {message}",
+        "unknownError": "Unknown error"
+    },
+    "topLists": {
+        "title": "Top Lists",
+        "noListsAvailable": "No top lists available."
+    },
+    "topListDetail": {
+        "detailsNotFound": "Top list details not found.",
+        "artworkFor": "Artwork for: {title}",
+        "titleFallback": "Top List Details",
+        "noSongs": "No songs found in this list."
+    },
+    "radioScreen": {
+        "pinnedTags": "Pinned Tags",
+        "noPinnedTags": "No pinned tags found.",
+        "tagsFallbackTitle": "Tags",
+        "noTagsInGroup": "No tags in this group.",
+        "playlistsForTag": "Playlists for \"{tagName}\" ({platformName})",
+        "noPlaylistsForTag": "No playlists found for this tag."
+    },
+    "importPlaylistModal": {
+        "header": "Import / Create Playlist",
+        "createNewPlaylist": "Create New Playlist",
+        "chooseCover": "Choose Cover",
+        "playlistNamePlaceholder": "Enter playlist name (optional for import)",
+        "createPlaylistButton": "Create Playlist",
+        "errorEnterPlaylistName": "Please enter playlist name",
+        "errorCreateFailed": "Creation failed, please try again",
+        "importFromSource": "Import Playlist from Source",
+        "selectSourceLabel": "Select Source:",
+        "noImportPlugins": "No importable plugin sources found.",
+        "urlIdPlaceholder": "Enter playlist URL or ID from selected source",
+        "importPlaylistButton": "Import Playlist",
+        "errorSelectSource": "Please select a source to import from.",
+        "errorEnterUrlOrId": "Please enter the playlist URL or ID.",
+        "successImport": "Successfully imported {count} songs into \"{playlistName}\". You can import another or close this modal.",
+        "errorImportFailedNoSongs": "Failed to import playlist from {platformName}. No songs returned or import failed.",
+        "errorImportFailedGeneric": "Import failed: {message}",
+        "errorImportCheckUrl": "Please check the URL and selected source." // Used if err.message is null
+    }
 }
