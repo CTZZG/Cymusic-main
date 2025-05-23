@@ -1,40 +1,39 @@
-import { Stack } from 'expo-router';
-import i18n from '@/utils/i18n'; // Import i18n
-// Removed GlobalButton and other unused imports for clarity based on new structure
-// import GlobalButton from '@/components/GlobalButton';
-// import { StackScreenWithSearchBar } from '@/constants/layout';
+import { Stack, useRouter } from 'expo-router'; 
+import i18n from '@/utils/i18n';
+import { TouchableOpacity, View } from 'react-native'; 
+import { Ionicons } from '@expo/vector-icons'; 
+import { colors } from '@/constants/tokens'; 
 import { defaultStyles } from '@/styles';
-import { View } from 'react-native';
-// Removed nowLanguage import as it's not used in the provided new structure
-// import { nowLanguage } from '@/utils/i18n';
 
 // Changed component name to match common practice for layout files
 const SongsTabLayout = () => {
-	// const language = nowLanguage.useValue(); // Removed as key={language} is not standard for this use case
+    const router = useRouter(); // Initialize router
+
 	return (
 		<View style={defaultStyles.container}>
 			<Stack>
 				<Stack.Screen
 					name="index" // This is src/app/(tabs)/(songs)/index.tsx
 					options={{
-						// Removed StackScreenWithSearchBar as TopListsScreen doesn't use search currently
-						headerLargeTitle: true, // Retain if desired, or adjust
-						title: i18n.t('topLists.title') 
+						headerLargeTitle: true, 
+						title: i18n.t('topLists.title'),
+                        headerRight: () => (
+                            <TouchableOpacity onPress={() => router.push('/SettingsScreen')} style={{ marginRight: 15 }}>
+                              <Ionicons name="settings-outline" size={24} color={colors.icon || (Platform.OS === 'ios' ? colors.primary : colors.text)} />
+                            </TouchableOpacity>
+                        ),
 					}}
 				/>
 				<Stack.Screen 
 					name="topListDetail" // This is src/app/(tabs)/(songs)/topListDetail.tsx
 					options={{ 
 						title: i18n.t('topListDetail.titleFallback') 
-						// The actual title for topListDetail can be set dynamically in the component itself
-						// using <Stack.Screen options={{ title: dynamicTitle }} />
 					}} 
 				/>
-                 {/* Assuming a playlistDetail screen might be navigated to from RadioScreen's sheets */}
                  <Stack.Screen
-                    name="playlistDetail" // Path: /(songs)/playlistDetail - needs to exist or be created
+                    name="playlistDetail" 
                     options={{
-                        title: i18n.t('common.playlistName') || "Playlist", // Example, adjust as needed
+                        title: i18n.t('common.playlistName') || "Playlist", 
                     }}
                 />
 			</Stack>

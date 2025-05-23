@@ -74,7 +74,10 @@
 		},
 		"placeholders": {
 			"enterSourceUrl": "请输入音源 URL"
-		}
+		},
+        "pluginManagement": "插件管理",
+        "language": "语言",
+        "about": "关于"
 	},
 	"logScreen": {
 		"title": "应用日志",
