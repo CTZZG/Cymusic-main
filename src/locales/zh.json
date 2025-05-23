@@ -256,5 +256,8 @@
         "errorImportFailedNoSongs": "从 {platformName} 导入歌单失败。未返回歌曲或导入失败。",
         "errorImportFailedGeneric": "导入失败：{message}",
         "errorImportCheckUrl": "请检查URL和选定的源。"
+    },
+    "search": {
+        "title": "搜索"
     }
 }

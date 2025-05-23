@@ -255,5 +255,8 @@
         "errorImportFailedNoSongs": "Failed to import playlist from {platformName}. No songs returned or import failed.",
         "errorImportFailedGeneric": "Import failed: {message}",
         "errorImportCheckUrl": "Please check the URL and selected source." 
+    },
+    "search": {
+        "title": "Search"
     }
 }

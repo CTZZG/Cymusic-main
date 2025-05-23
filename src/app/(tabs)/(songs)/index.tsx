@@ -78,7 +78,7 @@ const TopListsScreen = () => {
                 data={topListGroups}
                 renderItem={renderGroup}
                 keyExtractor={(group, index) => `${group.platform}_${group.title}_${index}`}
-                contentContainerStyle={{ paddingHorizontal: screenPadding.horizontal, paddingTop: 10 }}
+                contentContainerStyle={{ paddingHorizontal: screenPadding.horizontal }} 
             />
         </View>
     );
@@ -88,7 +88,6 @@ const styles = StyleSheet.create({
     centered: {
         justifyContent: 'center',
         alignItems: 'center',
-        // Ensure styles.centered takes up full space if it's meant to center content within the whole screen
         flex: 1, 
     },
     groupContainer: {

@@ -1,13 +1,13 @@
-import { Stack, useRouter } from 'expo-router'; 
+import { Stack } from 'expo-router'; 
 import i18n from '@/utils/i18n';
-import { TouchableOpacity, View } from 'react-native'; 
-import { Ionicons } from '@expo/vector-icons'; 
-import { colors } from '@/constants/tokens'; 
+// Removed TouchableOpacity, View, Ionicons, colors, useRouter, Platform as they are no longer needed
+// after removing the headerRight button.
 import { defaultStyles } from '@/styles';
+import { View } from 'react-native'; // View is still used for the root container
 
 // Changed component name to match common practice for layout files
 const SongsTabLayout = () => {
-    const router = useRouter(); // Initialize router
+    // const router = useRouter(); // Removed as it's no longer used
 
 	return (
 		<View style={defaultStyles.container}>
@@ -17,11 +17,7 @@ const SongsTabLayout = () => {
 					options={{
 						headerLargeTitle: true, 
 						title: i18n.t('topLists.title'),
-                        headerRight: () => (
-                            <TouchableOpacity onPress={() => router.push('/SettingsScreen')} style={{ marginRight: 15 }}>
-                              <Ionicons name="settings-outline" size={24} color={colors.icon || (Platform.OS === 'ios' ? colors.primary : colors.text)} />
-                            </TouchableOpacity>
-                        ),
+                        // headerRight was removed here
 					}}
 				/>
 				<Stack.Screen 
